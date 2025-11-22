@@ -102,16 +102,6 @@ public class Asm6502 {
 
     // Utility methods
 
-    // formatted hex dump of the assembled code.
-    private static void dumpAsm() {
-        for ( int x = 0; x < asm.size(); x++) {
-            if (x % 10 == 0)
-                System.out.printf("\n%4x: ", START + x);
-            System.out.printf("%02x ", asm.get(x));
-        }
-        System.out.println();
-    }
-
     // Show symbol table contents.
     private static void dumpSymtab(HashMap<String, String> symtab) {
         System.out.println("symtab:");
@@ -266,7 +256,7 @@ public class Asm6502 {
 
         // get the parts
         String l = m.group(1), c = m.group(2), r = m.group(3);
-        System.out.println("checkZeroPageXY: group1: " + l + " group 2: " + c + " group 3: " + r);
+        //System.out.println("checkZeroPageXY: group1: " + l + " group 2: " + c + " group 3: " + r);
         // zero page?
         int i = tryParseByte(l, symtab);
         if ( i == -1 )
@@ -276,7 +266,7 @@ public class Asm6502 {
         if ( c != null )
             a = tryParseByte(c.substring(1), null);
         // fake add in case it's a forward label
-        if ( i == -1 || a == -1 ) {
+        if (a == -1) {
             //asmAddByte(0xff);
             asmAddWord(0xffff);
             return false;
@@ -307,7 +297,7 @@ public class Asm6502 {
 
         // get the parts
         String l = m.group(1), c = m.group(2), r = m.group(3);
-        System.out.println("checkAbsoluteXY: group1: " + l + " group 2: " + c + " group 3: " + r);
+        //System.out.println("checkAbsoluteXY: group1: " + l + " group 2: " + c + " group 3: " + r);
         // address?
         int i = tryParseWord(l, symtab);
 
@@ -485,11 +475,23 @@ public class Asm6502 {
         //System.out.println("label = " + label + " command = " + command + " param = " + param);
 
         // pseudo ops.
-        if ( command.equals("DCB") ) return dcb(param);
-        if ( command.equals("DCW") ) return dcw(param);
-        if ( command.equals("DSB") ) return dsb(param,1);
-        if ( command.equals("DSQ") ) return dsb(param,2);
-        if ( command.equals("TXT") ) return txt(param);
+        switch (command) {
+            case "DCB" -> {
+                return dcb(param);
+            }
+            case "DCW" -> {
+                return dcw(param);
+            }
+            case "DSB" -> {
+                return dsb(param, 1);
+            }
+            case "DSQ" -> {
+                return dsb(param, 2);
+            }
+            case "TXT" -> {
+                return txt(param);
+            }
+        }
 
         // if not a pseudo op, let's reshape param.
         param = param.replaceAll("\\s","");
