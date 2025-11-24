@@ -6,7 +6,7 @@ everything was just fun. ;-)
 
 ## Concept
 
-This is renewal of my own brain and the joy I had using Commodore computers in the past.
+This is renewal of the joy I had using Commodore computers in the past.
 
 ## Implementation
 
