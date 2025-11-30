@@ -15,6 +15,11 @@ to my students.
 
 Everything in this design is Java 21 and C23 compatible.
 
+The C version uses [pcre2](https://github.com/PCRE2Project/pcre2) and [PString](https://github.com/jojowil/PString).
+
+At some point the Java one will be revisited. I'm already not liking some of the choices
+made during its implementation.
+
 ## The Language
 
 This project is based on the [Commodore 64 Assembly Language](https://www.c64-wiki.com/wiki/Assembler) which has a 
