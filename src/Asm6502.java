@@ -580,6 +580,22 @@ public class Asm6502 {
         return ba;
     }
 
+    static void printBasicCode(int s, byte[] o) {
+        System.out.println("10 ps=" + s + ":si=" + o.length);
+        System.out.println("20 for x=0 to si-1:read d:poke ps+x,d:next x");
+        System.out.print("30 end");
+        int line=1000;
+        for (int x = 0; x < o.length; x++) {
+            if (x%10 == 0) {
+                System.out.print("\n" + line + " data ");
+                line += 10;
+            }
+            else
+                System.out.print(",");
+            System.out.printf("%3d", o[x] & 0xff);
+        }
+    }
+
     public static void main(String[] args) throws IOException {
         Scanner inFile=null;
 
@@ -617,7 +633,9 @@ public class Asm6502 {
             out.close();
 
             int size = PC - START;
-            System.out.println("\nAssembled to " + size + " bytes.\nWrote " + obj.length + " bytes.");
+            System.out.println("\nAssembled to " + size + " bytes.\nWrote " + (obj.length+2) + " bytes.");
+
+            printBasicCode(START, obj);
         }
     }
 }
