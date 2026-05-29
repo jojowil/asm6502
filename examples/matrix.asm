@@ -22,7 +22,10 @@ main:   jsr clrscr  ; clear screen
         sta 646     ; set text
         jsr rseed   ; setup rnd gen
 
+        jsr mod39
+
 loop:   jsr rnd     ; get rnd num
+        jsr modfb
         tax         ; low order
         lda #0      ; high order zero for LE
         jsr linprt  ; print int
@@ -40,6 +43,20 @@ exit:   rts         ; BYE!
 clrscr: lda #147
         jsr chrout
         rts
+
+mod22:  lda #22
+        bne stfb
+mod39:  lda #39
+        bne stfb
+mod57:  lda #57
+        bne stfb
+stfb:   sta $fb
+modfb:  cmp $fb
+        bcc mfbend
+        sbc $fb
+        clc
+        bcc modfb   ; always clear, -1 byte vs jmp
+mfbend: rts
 
 save:   lda 646
         sta txtcol
