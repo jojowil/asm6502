@@ -453,7 +453,7 @@ public class Asm6502 {
     }
 
     private static boolean assembleLine(String oline, int lineNum, HashMap<String,String> symtab) {
-        Pattern p1 = Pattern.compile(lblOpRegex);
+        Pattern p1;
         Matcher m1;
         String /*label,*/ command, param;
 
@@ -464,9 +464,17 @@ public class Asm6502 {
         if (line.isEmpty())
             return true;
 
+        // TODO: Can this be merged with the next test?
+        // just a label? allow a label on its own line.
+        p1 = Pattern.compile("^\\s*(\\w+)\\s*:(.*)?$");
+        m1  = p1.matcher(line);
+        if (m1.matches())
+            return true;
+
         // what do we have here?
+        p1 = Pattern.compile(lblOpRegex);
         m1 = p1.matcher(line);
-        if ( m1.matches() ) {
+        if (m1.matches()) {
             //label = m1.group(1);
             command = m1.group(2).toUpperCase();
             param = m1.group(3).toUpperCase().trim();
@@ -583,7 +591,7 @@ public class Asm6502 {
     static void printBasicCode(int s, byte[] o) {
         System.out.println("10 ps=" + s + ":si=" + o.length);
         System.out.println("20 for x=0 to si-1:read d:poke ps+x,d:next x");
-        System.out.print("30 end");
+        System.out.print("30 print\"sys"+s+"\":end");
         int line=1000;
         for (int x = 0; x < o.length; x++) {
             if (x%10 == 0) {
