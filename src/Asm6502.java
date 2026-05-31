@@ -78,7 +78,8 @@ public class Asm6502 {
         {"PHP", null, null, null, null, null, null, null, null, null, null, 0x08, null},
         {"PLP", null, null, null, null, null, null, null, null, null, null, 0x28, null},
         {"STX", null, 0x86, null, 0x96, 0x8e, null, null, null, null, null, null, null},
-        {"STY", null, 0x84, 0x94, null, 0x8c, null, null, null, null, null, null, null}
+        {"STY", null, 0x84, 0x94, null, 0x8c, null, null, null, null, null, null, null},
+        {"???", null, null, null, null, null, null, null, null, null, null, null, null}
     };
 
     // Assembly methods
@@ -168,7 +169,7 @@ public class Asm6502 {
     }
 
     // text literals
-    public static boolean txt (String param) {
+    public static boolean txt(String param) {
         Pattern p = Pattern.compile("^\"(.*)\"$");
         Matcher m;
 
@@ -466,7 +467,7 @@ public class Asm6502 {
 
         // TODO: Can this be merged with the next test?
         // just a label? allow a label on its own line.
-        p1 = Pattern.compile("^\\s*(\\w+)\\s*:(.*)?$");
+        p1 = Pattern.compile("^\\s*(\\w+)\\s*:\\s*$");
         m1  = p1.matcher(line);
         if (m1.matches())
             return true;
