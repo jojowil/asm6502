@@ -41,10 +41,20 @@ loop:
     sbc c       ; c=int(rnd(0)*22-a)
     sta c       ; column height
 
+    ;lda a
+    ;jsr printa
+    ;lda b
+    ;jsr printa
+    ;lda c
+    ;jsr printa
+    ;lda #13
+    ;jsr crlf
+    ;jmp chkstp
+
 ; line 40 - move down using blanks to reduce clutter
 topspc:
     ldx a
-    cpx #0
+    ;cpx #0
     bmi pchrs
 tspcloop:
     txa
@@ -60,7 +70,7 @@ tspcloop:
 ; line 50 - print chars in column
 pchrs:
     ldx c
-    cpx #1
+    ;cpx #1
     bmi range
 pchrloop:
     txa
@@ -82,7 +92,7 @@ pchrloop:
 ; line 60 - check range of c
 range:
     lda c
-    cmp #0      ; c < 0?
+    ;cmp #0      ; c < 0?
     bmi loop
     clc
     adc a
@@ -247,6 +257,7 @@ rseed:
 ;
 rnd:
     lda $d41b   ; randomized noise byte from voice 3
+    and #$7f
     rts
 
 ;
