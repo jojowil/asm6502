@@ -9,11 +9,47 @@
 ; 60 ifc<0or(a+c)>20goto30
 ; 70 e=21-(a+c):ford=1toe:printtab(b);chr$(32):next:goto30
 ;
+; Note that much of the logic has changed since we're not using
+; BASIC style movement. We are dropping characters directly into
+; screen memory which changes things considerably, especially
+; the speed!
+;
+; Line numbers are provided in the code that loosely match the
+; intent of the original code. Again, this changes a lot due
+; to the nature of the differences in approaches to the logic.
+;
 
 define linprt $bdcd ; print XA (LE) as int
 define chrout $ffd2
 define lowup  14    ; PETSCII for lower/upper
 define upgra  142   ; PETSCII for upper/graphic
+
+;
+; Notes on variables from the original source.
+;
+; a is the length of leading spaces.
+; b is the column.
+; c is the length of vertical text after a.
+; ac is the start of trailing spaces until bottom.
+; d & e were removed.
+
+;
+; Register safety
+;
+; Where possible register preservation is provided.
+; You'll see a lot of TXA, PHA and PLA, TAX code that
+; performs the preservation. We're not concerned about
+; the speed here.
+
+;
+; Application speed;
+;
+; We've used spin loops to control the speed. There is a preset
+; that's rather fast. The up and down arrows can be used to
+; change the speed of the display. It ranges from 1 to 30
+; internally. The start is about mid and is equivalent to the
+; BASIC speed, which generally could not be made faster.
+;
 
 ; line 20
 main:
@@ -29,33 +65,29 @@ main:
 ; line 30
 loop:
     jsr rnd     ; get rand num into A
-    jsr mod22
+    jsr mod20
+    cmp #0
+    beq loop    ; no zeroes
     sta a       ; starting row
-    sta c       ; make copy
-    jsr rnd
-    jsr mod39
-    sta b       ; starting column
-    jsr rnd
-    jsr mod22
+    lda #23
     sec
-    sbc c       ; c=int(rnd(0)*22-a)
-    sta c       ; column height
-
-    ;lda a
-    ;jsr printa
-    ;lda b
-    ;jsr printa
-    ;lda c
-    ;jsr printa
-    ;lda #13
-    ;jsr crlf
-    ;jmp chkstp
+    sbc a
+    sta $fb
+    jsr rnd
+    jsr modfb   ; rnd of 23-a
+    cmp #0
+    beq loop    ; no zeroes
+    sta c       ; length of char column
+    clc
+    adc a
+    sta ac      ; store a+c
+    jsr rnd
+    jsr mod40
+    sta b       ; starting column - can be 0
 
 ; line 40 - move down using blanks to reduce clutter
 topspc:
-    ldx a
-    ;cpx #0
-    bmi pchrs
+    ldx #0
 tspcloop:
     txa
     pha
@@ -64,14 +96,13 @@ tspcloop:
     jsr putxy
     pla
     tax
-    dex
+    inx
+    cpx a
     bne tspcloop
 
 ; line 50 - print chars in column
 pchrs:
-    ldx c
-    ;cpx #1
-    bmi range
+    ldx a
 pchrloop:
     txa
     pha
@@ -86,31 +117,33 @@ pchrloop:
     jsr putxy
     pla
     tax
-    dex
+    inx
+    cpx ac
     bne pchrloop
 
 ; line 60 - check range of c
 range:
-    lda c
+    ;lda ac
     ;cmp #0      ; c < 0?
-    bmi loop
-    clc
-    adc a
-    cmp #20     ; c > 20?
-    bpl loop
+    ;bmi loop
+    ;clc
+    ;adc a
+    ;cmp #22     ; c > 22?
+    ;bpl loop
 
 ; line 70 - print more blanks to reduce clutter
 btmspc:
-    lda a
-    clc
-    adc c
-    sta e       ; e = (a+c)
-    lda #21
-    sec
-    sbc e       ; 21-(a+c)
-    sta e       ; store in e
+    ;lda a
+    ;clc
+    ;adc c
+    ;sta e       ; e = (a+c)
+    ;sta ac
+    ;lda #22
+    ;sec
+    ;sbc e       ; 23-(a+c)
+    ;sta e       ; store in e
 
-    ldx e
+    ldx ac      ; after top spaces and chars
 bspcloop:
     txa
     pha
@@ -119,13 +152,44 @@ bspcloop:
     jsr putxy
     pla
     tax
-    dex
+    inx
+    cpx #23
+    bpl bldone
     bne bspcloop
 
-chkstp:
+bldone:
+    bit chdbg
+    bpl chkkey
+    jsr chdebug
+
+chkkey:
     jsr $ffe4   ; check for char
-    cmp #$03    ; run/stop?
+    cmp #$03    ; run/stop? (esc in emulators)
     beq done    ; yes
+    bit chdbg   ; print char debug and step?
+    bpl nowait
+    cmp #32
+    bne chkkey
+nowait:
+    bit spdbg   ; print speed debug?
+    bpl nospeed
+    jsr prtspdbg
+nospeed:
+    cmp #17     ; down arrow to decrease spin
+    bne nodown
+    lda outer
+    cmp #1
+    beq nomore
+    dec outer
+    jmp nomore
+nodown:
+    cmp #145    ; up arrow to increase spin
+    bne nomore
+    lda outer
+    cmp #30
+    beq nomore
+    inc outer
+nomore:
     jmp loop
 
 done:
@@ -134,25 +198,72 @@ done:
 exit:
     rts         ; BYE!
 
+;
+; Routine to home cursor
+;
+home:
+    pha
+    lda #19
+    jsr chrout
+    pla
+    rts
+
+;
+; Routine to clear the screen
+;
 clrscr:
+    pha
     lda #147
     jsr chrout
+    pla
+    rts
+
+;
+; Debug speed spin loop
+;
+prtspdbg:
+    pha
+    jsr home
+    jsr printspc
+    lda outer
+    jsr printa
+    pla
+    rts
+
+;
+; Debug statements to see vars
+;
+chdebug:
+    pha
+    jsr home
+    jsr printspc
+    jsr printspc
+    jsr printspc
+    jsr printspc
+    jsr chrout
+    lda a
+    jsr printa
+    lda b
+    jsr printa
+    lda c
+    jsr printa
+    lda ac
+    jsr printa
+    lda #13
+    jsr crlf
+    pla
     rts
 
 ;
 ; multi-entrypoint routine for different mod calcs
 ; clobbers x
 ;
-mod22:
-    ldx #22
+mod20:
+    ldx #20
     bne stfb
 
-mod39:
-    ldx #39
-    bne stfb
-
-mod57:
-    ldx #57
+mod40:
+    ldx #40
     bne stfb
 
 mod91:
@@ -199,6 +310,10 @@ rest:
     ;jsr printa
     rts
 
+;
+; print value in A extended to XA (LE)
+; clobbers A, X
+;
 printa:
     tax
     lda #0
@@ -207,8 +322,10 @@ printa:
     rts
 
 crlf:
+    pha
     lda #13
     jsr chrout
+    pla
     rts
 
 ;
@@ -218,7 +335,6 @@ crlf:
 putxy:
     sta ch
     stx row
-    sty col     ; FIXME: may not need this
     ; put $0400 in zp (LE) TODO: calculate the real base
     sty $fc     ; col added to base mem
     lda #4
@@ -239,6 +355,7 @@ xyloop:
 stch:
     lda ch
     sta ($fc,x)  ; X is zero from loop above
+    jsr spin
     rts
 
 ;
@@ -257,7 +374,49 @@ rseed:
 ;
 rnd:
     lda $d41b   ; randomized noise byte from voice 3
-    and #$7f
+    rts
+
+;
+; Spin loop to create delay - preserves A, X, Y
+;
+spin:
+    pha
+    txa
+    pha
+    tya
+    pha
+    ldy outer
+    ldx #15
+ spinloop:
+    dex
+    bne spinloop
+    dey
+    bne spinloop
+    pla
+    tay
+    pla
+    tax
+    pla
+    rts
+
+;
+; Print debug spaces - preserves X and A.
+;
+printspc:
+    pha
+    txa
+    pha
+    ldx #0
+prtloop:
+    lda spaces,x
+    beq prdone
+    jsr chrout
+    inx
+    jmp prtloop
+prdone:
+    pla
+    tax
+    pla
     rts
 
 ;
@@ -267,10 +426,14 @@ txtcol: dcb 0
 bdrcol: dcb 0   ; saved border color
 scrcol: dcb 0   ; saved screen color
 a:      dcb 0   ; var a from BASIC
+ac:     dcb 0   ; a+c
 b:      dcb 0   ; var b from BASIC
 c:      dcb 0   ; var c from BASIC
-d:      dcb 0   ; var d from BASIC
-e:      dcb 0   ; var e from BASIC
 row:    dcb 0   ; row for screen code
-col:    dcb 0   ; column for screen code
 ch:     dcb 0   ; the screen code
+spaces: txt "    "
+        dcb 13
+        dcb 0
+chdbg:  dcb 0   ; character debug (128 to debug)
+spdbg:  dcb 0   ; speed debug (128 to debug)
+outer:  dcb 15
