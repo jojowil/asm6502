@@ -53,21 +53,19 @@ define upgra  142   ; PETSCII for upper/graphic
 
 ; line 20
 main:
-    jsr save    ; save colors and charset
+    jsr save    ; save colors
     lda #0      ; black
     sta 53281   ; set background
     sta 53280   ; set border
     lda #5      ; green
     sta 646     ; set text
     jsr clrscr  ; clear screen AFTER setting text color!
-    lda #14
-    jsr chrout  ; set lower/upper charset
     jsr rseed   ; setup rand gen
 
 ; line 30
 loop:
     jsr rnd     ; get rand num into A
-    jsr moda
+    jsr mod20
     cmp #0
     beq loop    ; no zeroes
     sta a       ; starting row
@@ -84,7 +82,7 @@ loop:
     adc a
     sta ac      ; store a+c
     jsr rnd
-    jsr modb
+    jsr mod40
     sta b       ; starting column - can be 0
 
 ; line 40 - move down using blanks to reduce clutter
@@ -110,7 +108,7 @@ pchrloop:
     pha
     pha
     jsr rnd
-    jsr modch
+    jsr mod91
     sta ch
     ldy b
     pla
@@ -195,7 +193,7 @@ nomore:
     jmp loop
 
 done:
-    jsr rest    ; restore colors and charset
+    jsr rest    ; restore colors
 
 exit:
     rts         ; BYE!
@@ -260,15 +258,15 @@ chdebug:
 ; multi-entrypoint routine for different mod calcs
 ; clobbers x
 ;
-moda:
-    ldx #11
+mod20:
+    ldx #20
     bne stfb
 
-modb:
+mod40:
     ldx #40
     bne stfb
 
-modch:
+mod91:
     ldx #91
     bne stfb
 
@@ -295,9 +293,6 @@ save:
     lda 53280
     sta bdrcol
     ;jsr printa
-    lda 53272
-    and #2
-    sta chset
     rts
 
 ;
@@ -313,9 +308,6 @@ rest:
     lda bdrcol
     sta 53280
     ;jsr printa
-    lda 53272
-    ora chset
-    sta 53272
     rts
 
 ;
@@ -436,7 +428,6 @@ prdone:
 txtcol: dcb 0   ; saved text color
 bdrcol: dcb 0   ; saved border color
 scrcol: dcb 0   ; saved screen color
-chset:  dcb 0   ; saved character set
 a:      dcb 0   ; var a from BASIC
 ac:     dcb 0   ; a+c
 b:      dcb 0   ; var b from BASIC
