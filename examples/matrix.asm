@@ -321,6 +321,9 @@ printa:
     jsr crlf
     rts
 
+;
+; print CR-LF, preserves A
+;
 crlf:
     pha
     lda #13
@@ -422,7 +425,7 @@ prdone:
 ;
 ; variables
 ;
-txtcol: dcb 0
+txtcol: dcb 0   ; saved text color
 bdrcol: dcb 0   ; saved border color
 scrcol: dcb 0   ; saved screen color
 a:      dcb 0   ; var a from BASIC
@@ -436,4 +439,4 @@ spaces: txt "    "
         dcb 0
 chdbg:  dcb 0   ; character debug (128 to debug)
 spdbg:  dcb 0   ; speed debug (128 to debug)
-outer:  dcb 15
+outer:  dcb 15  ; outer loop value (1-30) for the spin loop
