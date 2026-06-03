@@ -79,7 +79,6 @@ public class Asm6502 {
         {"PLP", null, null, null, null, null, null, null, null, null, null, 0x28, null},
         {"STX", null, 0x86, null, 0x96, 0x8e, null, null, null, null, null, null, null},
         {"STY", null, 0x84, 0x94, null, 0x8c, null, null, null, null, null, null, null},
-        {"???", null, null, null, null, null, null, null, null, null, null, null, null}
     };
 
     // Assembly methods
@@ -624,7 +623,7 @@ public class Asm6502 {
 
         // Fixup OPS regexes.
         StringBuilder replace = new StringBuilder((String) Opcodes[0][0]);
-        for ( int x = 1; x < Opcodes.length-1; x++)
+        for ( int x = 1; x < Opcodes.length; x++)
             replace.append("|").append(Opcodes[x][0]);
         lblOpRegex = lblOpRegex.replaceAll("OPS", replace.toString());
         //System.out.println(lblOpRegex); //debug
