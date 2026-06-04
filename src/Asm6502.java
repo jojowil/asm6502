@@ -385,7 +385,7 @@ public class Asm6502 {
         for ( int x = 0; x < prg.length; x++ ) {
             String line = strip(prg[x]);
             // Start of program - only one start is allowed.
-            if (line.matches("^\\*=\\s*\\$?\\w+$")) {
+            if (line.matches("^\\*\\s*=\\s*\\$?\\w+$")) {
                 String addr = strip(line.split("=")[1]);
                 START = tryParseWord(addr, null);
                 PC = START;
