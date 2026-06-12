@@ -757,7 +757,7 @@ public class Asm6502 {
                 Byte[] o = block.asm.toArray(new Byte[0]);
                 System.out.println("\n" + line++ + " ps=" + s + ":si=" + o.length);
                 System.out.println(line++ + " for x=0 to si-1:read d:poke ps+x,d:next x");
-                System.out.print(line++ + " print\"sys" + s + "\":end");
+                System.out.print(line++ + " print\"sys" + s + "\"");
                 for (int x = 0; x < o.length; x++) {
                     if (x % 10 == 0) {
                         System.out.print("\n" + line++ + " data ");
