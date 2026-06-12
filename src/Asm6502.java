@@ -116,7 +116,10 @@ public class Asm6502 {
                 out.write(obj);
                 out.close();
 
-                int size = PC - START;
+                int size = 0;
+                for (AsmBlock a : asmBlocks) {
+                    size += a.asm.size();
+                }
                 System.out.println("\nAssembled to " + size + " bytes.\nWrote " + (obj.length) + " bytes.");
 
                 //printBasicCode(START, obj);
