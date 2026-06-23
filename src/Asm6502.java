@@ -666,7 +666,7 @@ public class Asm6502 {
             ASMTABLE       $811(2065)
             SIZE           $fd(253)
             MU1            $8a6(2214)
-            AFTER          $8bf(2239)
+            BLKSTART       $8bf(2239)
             MOVEUP         $88b(2187)
             MU3            $8b1(2225)
             FROM           $f9(249)
