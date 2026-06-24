@@ -706,6 +706,7 @@ public class Asm6502 {
                 // the size of the preamble
                 size += preamble.length;
                 start = 2049; // $0801 - BASIC start
+                System.out.println("Building multiblock program.");
             } else start = asmBlocks.getFirst().start;
             // add the size of all blocks
             for (AsmBlock ab : asmBlocks) {
@@ -716,6 +717,7 @@ public class Asm6502 {
             ba[idx++] = (byte) (start & 0xff);
             ba[idx++] = (byte) ((start & 0xff00) >>> 8);
             if (MultiBlock && !BASICBlock) {
+                System.out.println("Injecting relocation code.");
                 for (byte b : preamble)
                     ba[idx++] = b;
             }
@@ -728,7 +730,7 @@ public class Asm6502 {
 
                 asm = asmBlocks.get(x).asm;
                 //
-                if (!BASICBlock) {
+                if (MultiBlock && !BASICBlock) {
                     AsmBlock ab = asmBlocks.get(x);
                     // set FROM
                     ba[tbloffset++] = (byte) (blockstart & 0xff);
